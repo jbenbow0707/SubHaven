@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Browse Listings — SubHaven</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-50: #EAF4FB; --blue-100: #C7E3F5; --blue-200: #90C6EA;
+    --blue-400: #4DA8D8; --blue-600: #2083B5; --blue-700: #15678F; --blue-800: #0D4D6B;
+    --gray-50: #F7F8FA; --gray-100: #EFF1F5; --gray-200: #DDE1EA;
+    --gray-400: #9BA3B2; --gray-600: #5C6478; --gray-800: #2D3242; --white: #FFFFFF;
+    --radius-sm: 8px; --radius-md: 14px; --radius-lg: 22px;
+    --shadow-sm: 0 2px 8px rgba(30,60,90,0.07); --shadow-md: 0 6px 24px rgba(30,60,90,0.11);
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--gray-50); color: var(--gray-800); line-height: 1.6; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5%; height: 64px;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--blue-700); text-decoration: none; }
+  .nav-logo span { color: var(--blue-400); }
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+  .nav-links a { text-decoration: none; color: var(--gray-600); font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--blue-600); }
+  .nav-cta {
+    background: var(--blue-600); color: var(--white) !important;
+    padding: 0.45rem 1.1rem; border-radius: 50px; font-size: 0.84rem !important;
+    transition: background 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--blue-700) !important; }
+
+  /* PAGE HEADER */
+  .page-header {
+    background: linear-gradient(135deg, var(--blue-700), var(--blue-600));
+    padding: 2.5rem 5%;
+    color: var(--white);
+  }
+  .page-header-inner { max-width: 1240px; margin: 0 auto; }
+  .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; margin-bottom: 0.3rem; }
+  .page-header p { font-size: 0.9rem; color: rgba(255,255,255,0.75); margin-bottom: 1.2rem; }
+
+  /* INLINE SEARCH */
+  .header-search {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: var(--white); border-radius: 50px;
+    padding: 0.4rem 0.5rem 0.4rem 1.2rem; max-width: 780px;
+    box-shadow: var(--shadow-md);
+  }
+  .header-search input, .header-search select {
+    border: none; outline: none; background: transparent;
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--gray-800);
+    flex: 1; min-width: 0;
+  }
+  .header-search-divider { width: 1px; height: 24px; background: var(--gray-200); flex-shrink: 0; }
+  .header-search-btn {
+    background: var(--blue-600); color: var(--white); border: none;
+    border-radius: 50px; padding: 0.55rem 1.2rem; font-size: 0.84rem; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .header-search-btn:hover { background: var(--blue-700); }
+
+  /* MAIN LAYOUT */
+  .main { max-width: 1240px; margin: 0 auto; padding: 2rem 5% 4rem; display: flex; gap: 2rem; align-items: flex-start; }
+
+  /* SIDEBAR FILTERS */
+  .sidebar { width: 270px; flex-shrink: 0; position: sticky; top: 80px; }
+  .filter-panel {
+    background: var(--white); border-radius: var(--radius-md);
+    border: 1px solid var(--gray-200); padding: 1.4rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .filter-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+  .filter-panel-header h3 { font-size: 0.92rem; font-weight: 600; }
+  .clear-btn { font-size: 0.75rem; color: var(--blue-600); cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; }
+  .clear-btn:hover { text-decoration: underline; }
+  .filter-group { margin-bottom: 1.4rem; padding-bottom: 1.4rem; border-bottom: 1px solid var(--gray-100); }
+  .filter-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .filter-group label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-600); display: block; margin-bottom: 0.7rem; }
+  .filter-group select, .filter-group input[type="text"] {
+    width: 100%; padding: 0.55rem 0.8rem; border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; color: var(--gray-800); outline: none; background: var(--white);
+    transition: border-color 0.2s;
+  }
+  .filter-group select:focus, .filter-group input:focus { border-color: var(--blue-400); }
+
+  /* RANGE SLIDER */
+  .range-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--gray-600); margin-bottom: 0.5rem; }
+  .range-row strong { color: var(--gray-800); }
+  input[type="range"] { width: 100%; accent-color: var(--blue-600); }
+
+  /* CHECKBOX PILLS */
+  .pill-group { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .pill {
+    padding: 0.3rem 0.75rem; border-radius: 50px;
+    border: 1px solid var(--gray-200); background: var(--white);
+    font-size: 0.78rem; font-weight: 500; cursor: pointer;
+    transition: all 0.15s; color: var(--gray-600); user-select: none;
+  }
+  .pill:hover { border-color: var(--blue-400); color: var(--blue-600); }
+  .pill.selected { background: var(--blue-50); border-color: var(--blue-400); color: var(--blue-700); font-weight: 600; }
+
+  /* TOGGLE SWITCH */
+  .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+  .toggle-label { font-size: 0.85rem; color: var(--gray-700); }
+  .toggle { position: relative; width: 36px; height: 20px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: var(--gray-200);
+    border-radius: 50px; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute; width: 14px; height: 14px;
+    left: 3px; top: 3px; background: var(--white);
+    border-radius: 50%; transition: transform 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--blue-600); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+  /* RESULTS AREA */
+  .results { flex: 1; min-width: 0; }
+  .results-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.5rem;
+  }
+  .results-count { font-size: 0.88rem; color: var(--gray-600); }
+  .results-count strong { color: var(--gray-800); }
+  .sort-select {
+    padding: 0.45rem 0.9rem; border: 1px solid var(--gray-200); border-radius: 50px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.84rem; outline: none;
+    background: var(--white); color: var(--gray-800); cursor: pointer;
+  }
+  .view-toggle { display: flex; gap: 0.3rem; }
+  .view-btn {
+    width: 34px; height: 34px; border: 1px solid var(--gray-200); background: var(--white);
+    border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1rem; transition: all 0.15s; color: var(--gray-400);
+  }
+  .view-btn.active { background: var(--blue-50); border-color: var(--blue-400); color: var(--blue-600); }
+
+  /* ACTIVE FILTERS */
+  .active-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+  .active-filter-tag {
+    display: flex; align-items: center; gap: 0.3rem;
+    background: var(--blue-50); color: var(--blue-700);
+    border: 1px solid var(--blue-200); border-radius: 50px;
+    font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.65rem;
+    cursor: pointer;
+  }
+  .active-filter-tag:hover { background: var(--blue-100); }
+
+  /* LISTING GRID */
+  .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.3rem; }
+  .listing-card {
+    background: var(--white); border-radius: var(--radius-md);
+    border: 1px solid var(--gray-200); overflow: hidden;
+    box-shadow: var(--shadow-sm); cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .listing-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); }
+  .listing-card.hidden { display: none; }
+
+  .card-img { position: relative; height: 190px; overflow: hidden; }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s; }
+  .listing-card:hover .card-img img { transform: scale(1.05); }
+  .card-badge {
+    position: absolute; top: 10px; left: 10px;
+    background: var(--blue-600); color: var(--white);
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 0.22rem 0.6rem; border-radius: 50px;
+  }
+  .card-badge.new { background: #1a9e4a; }
+  .card-verified {
+    position: absolute; top: 10px; right: 42px;
+    background: rgba(255,255,255,0.92); color: #1a9e4a;
+    font-size: 0.68rem; font-weight: 700;
+    padding: 0.22rem 0.6rem; border-radius: 50px;
+  }
+  .card-save {
+    position: absolute; top: 8px; right: 8px;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255,255,255,0.9); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+    transition: background 0.2s; box-shadow: var(--shadow-sm);
+  }
+  .card-save:hover { background: var(--white); }
+
+  .card-body { padding: 1rem 1.1rem; }
+  .card-title { font-size: 0.92rem; font-weight: 600; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-location { font-size: 0.78rem; color: var(--gray-400); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 3px; }
+  .card-meta { display: flex; gap: 0.6rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+  .card-meta-item {
+    display: flex; align-items: center; gap: 3px;
+    font-size: 0.75rem; color: var(--gray-600);
+    background: var(--gray-100); padding: 0.2rem 0.55rem; border-radius: 50px;
+  }
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 0.7rem; border-top: 1px solid var(--gray-100);
+  }
+  .card-price { font-size: 1.1rem; font-weight: 700; color: var(--blue-700); }
+  .card-price span { font-size: 0.75rem; font-weight: 400; color: var(--gray-400); }
+  .card-dates { font-size: 0.72rem; color: var(--gray-400); }
+
+  /* LIST VIEW */
+  .listing-grid.list-view { grid-template-columns: 1fr; }
+  .listing-grid.list-view .listing-card { display: flex; flex-direction: row; height: 150px; }
+  .listing-grid.list-view .card-img { width: 220px; height: 100%; flex-shrink: 0; }
+  .listing-grid.list-view .card-body { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+
+  /* PAGINATION */
+  .pagination { display: flex; align-items: center; justify-content: center; gap: 0.4rem; margin-top: 2.5rem; }
+  .page-btn {
+    width: 36px; height: 36px; border-radius: var(--radius-sm);
+    border: 1px solid var(--gray-200); background: var(--white);
+    font-size: 0.84rem; font-weight: 500; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; font-family: 'DM Sans', sans-serif; color: var(--gray-800);
+  }
+  .page-btn:hover { border-color: var(--blue-400); color: var(--blue-600); }
+  .page-btn.active { background: var(--blue-600); color: var(--white); border-color: var(--blue-600); }
+  .page-btn.arrow { color: var(--gray-400); }
+
+  /* NO RESULTS */
+  .no-results { text-align: center; padding: 4rem 1rem; color: var(--gray-400); display: none; }
+  .no-results-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+  .no-results h3 { font-size: 1rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.3rem; }
+  .no-results p { font-size: 0.85rem; }
+
+  /* FOOTER */
+  footer { background: var(--gray-800); color: rgba(255,255,255,0.6); text-align: center; padding: 1.5rem 5%; font-size: 0.8rem; }
+  footer a { color: var(--blue-400); text-decoration: none; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .listing-grid.list-view .listing-card { flex-direction: column; height: auto; }
+    .listing-grid.list-view .card-img { width: 100%; height: 190px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">Sub<span>Haven</span></a>
+  <div class="nav-links">
+    <a href="listings.html" class="active">Browse</a>
+    <a href="#">How It Works</a>
+    <a href="#">Verification</a>
+    <a href="#">Payments</a>
+    <a href="index.html" class="nav-cta">List Your Lease →</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <h1>Find Your Sublease</h1>
+    <p>Verified listings for students, interns, and short-term seekers</p>
+    <div class="header-search">
+      <input type="text" id="searchInput" placeholder="🔍  City, university, or neighborhood..." oninput="applyFilters()" />
+      <div class="header-search-divider"></div>
+      <select id="durationFilter" onchange="applyFilters()" style="padding: 0 0.5rem;">
+        <option value="">Any duration</option>
+        <option value="1-3">1–3 months</option>
+        <option value="3-6">3–6 months</option>
+        <option value="6-12">6–12 months</option>
+      </select>
+      <div class="header-search-divider"></div>
+      <select id="whoFilter" onchange="applyFilters()" style="padding: 0 0.5rem;">
+        <option value="">Anyone</option>
+        <option value="student">Students</option>
+        <option value="intern">Interns</option>
+      </select>
+      <button class="header-search-btn">Search</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="filter-panel">
+      <div class="filter-panel-header">
+        <h3>Filters</h3>
+        <button class="clear-btn" onclick="clearFilters()">Clear all</button>
+      </div>
+
+      <div class="filter-group">
+        <label>Monthly Budget</label>
+        <div class="range-row">
+          <span>$0</span>
+          <strong id="budget-display">Up to $3,000</strong>
+          <span>$5,000</span>
+        </div>
+        <input type="range" id="budgetRange" min="0" max="5000" step="50" value="3000" oninput="updateBudget(this.value); applyFilters()" />
+      </div>
+
+      <div class="filter-group">
+        <label>City</label>
+        <select id="cityFilter" onchange="applyFilters()">
+          <option value="">All Cities</option>
+          <option value="Austin">Austin, TX</option>
+          <option value="Dallas">Dallas, TX</option>
+          <option value="Houston">Houston, TX</option>
+          <option value="New York">New York, NY</option>
+          <option value="San Francisco">San Francisco, CA</option>
+          <option value="Chicago">Chicago, IL</option>
+          <option value="Seattle">Seattle, WA</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Property Type</label>
+        <div class="pill-group" id="typeFilters">
+          <div class="pill" data-value="Studio" onclick="togglePill(this)">Studio</div>
+          <div class="pill" data-value="1 Bed" onclick="togglePill(this)">1 Bed</div>
+          <div class="pill" data-value="2 Bed" onclick="togglePill(this)">2 Bed</div>
+          <div class="pill" data-value="Room" onclick="togglePill(this)">Private Room</div>
+          <div class="pill" data-value="House" onclick="togglePill(this)">Full House</div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Verified For</label>
+        <div class="pill-group" id="verifiedFilters">
+          <div class="pill" data-value="student" onclick="togglePill(this)">🎓 Students</div>
+          <div class="pill" data-value="intern" onclick="togglePill(this)">💼 Interns</div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Amenities</label>
+        <div class="pill-group" id="amenityFilters">
+          <div class="pill" data-value="parking" onclick="togglePill(this)">🚗 Parking</div>
+          <div class="pill" data-value="gym" onclick="togglePill(this)">🏋️ Gym</div>
+          <div class="pill" data-value="pets" onclick="togglePill(this)">🐾 Pets OK</div>
+          <div class="pill" data-value="furnished" onclick="togglePill(this)">🛋 Furnished</div>
+          <div class="pill" data-value="laundry" onclick="togglePill(this)">🫧 Laundry</div>
+          <div class="pill" data-value="pool" onclick="togglePill(this)">🏊 Pool</div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Options</label>
+        <div class="toggle-row">
+          <span class="toggle-label">Verified only</span>
+          <label class="toggle"><input type="checkbox" id="verifiedOnly" onchange="applyFilters()" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Furnished only</span>
+          <label class="toggle"><input type="checkbox" id="furnishedOnly" onchange="applyFilters()" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Pets allowed</span>
+          <label class="toggle"><input type="checkbox" id="petsOnly" onchange="applyFilters()" /><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- RESULTS -->
+  <div class="results">
+    <div class="results-toolbar">
+      <div class="results-count"><strong id="results-num">18</strong> listings found</div>
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <select class="sort-select" onchange="sortListings(this.value)">
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="newest">Newest First</option>
+          <option value="duration">Shortest Term</option>
+        </select>
+        <div class="view-toggle">
+          <button class="view-btn active" onclick="setView('grid', this)" title="Grid view">⊞</button>
+          <button class="view-btn" onclick="setView('list', this)" title="List view">☰</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="active-filters" id="activeFilterTags"></div>
+
+    <div class="listing-grid" id="listingGrid">
+      <!-- Cards injected by JS -->
+    </div>
+
+    <div class="no-results" id="noResults">
+      <div class="no-results-icon">🏠</div>
+      <h3>No listings match your filters</h3>
+      <p>Try adjusting your search or clearing some filters</p>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<footer>
+  <a href="index.html">SubHaven</a> · © 2025 · <a href="#">Privacy</a> · <a href="#">Terms</a>
+</footer>
+
+<script>
+const LISTINGS = [
+  { id:1, title:'Bright Studio Near Campus', city:'Austin', state:'TX', neighborhood:'West Campus', type:'Studio', beds:0, baths:1, price:1150, duration:'3-6', verified:true, furnished:true, pets:false, parking:false, gym:false, laundry:true, pool:false, forStudents:true, forInterns:false, badge:'', img:'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=600&q=80', dates:'May 15 – Aug 15' },
+  { id:2, title:'Modern 1BR with Rooftop Access', city:'Houston', state:'TX', neighborhood:'Midtown', type:'1 Bed', beds:1, baths:1, price:1600, duration:'6-12', verified:true, furnished:false, pets:true, parking:true, gym:true, laundry:true, pool:true, forStudents:false, forInterns:true, badge:'new', img:'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&q=80', dates:'Jun 1 – Dec 1' },
+  { id:3, title:'Private Room in Shared House', city:'Dallas', state:'TX', neighborhood:'Uptown', type:'Room', beds:1, baths:1, price:780, duration:'1-3', verified:true, furnished:true, pets:false, parking:false, gym:false, laundry:true, pool:false, forStudents:true, forInterns:true, badge:'', img:'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&q=80', dates:'Flexible' },
+  { id:4, title:'Sunny 2BR Near Tech Campus', city:'San Francisco', state:'CA', neighborhood:'SoMa', type:'2 Bed', beds:2, baths:2, price:2850, duration:'3-6', verified:true, furnished:true, pets:false, parking:true, gym:true, laundry:true, pool:false, forStudents:false, forInterns:true, badge:'', img:'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80', dates:'Jun – Sep' },
+  { id:5, title:'Cozy Studio Near NYU', city:'New York', state:'NY', neighborhood:'Greenwich Village', type:'Studio', beds:0, baths:1, price:2100, duration:'1-3', verified:true, furnished:true, pets:false, parking:false, gym:false, laundry:false, pool:false, forStudents:true, forInterns:false, badge:'new', img:'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=80', dates:'May – Jul' },
+  { id:6, title:'Spacious 1BR in Lincoln Park', city:'Chicago', state:'IL', neighborhood:'Lincoln Park', type:'1 Bed', beds:1, baths:1, price:1350, duration:'6-12', verified:true, furnished:false, pets:true, parking:true, gym:false, laundry:true, pool:false, forStudents:true, forInterns:true, badge:'', img:'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80', dates:'Jul – Jan' },
+  { id:7, title:'Modern Room Near Amazon HQ', city:'Seattle', state:'WA', neighborhood:'South Lake Union', type:'Room', beds:1, baths:1, price:1200, duration:'3-6', verified:true, furnished:true, pets:false, parking:false, gym:true, laundry:true, pool:false, forStudents:false, forInterns:true, badge:'new', img:'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=600&q=80', dates:'Jun – Sep' },
+  { id:8, title:'Charming 2BR Near Rice University', city:'Houston', state:'TX', neighborhood:'Museum District', type:'2 Bed', beds:2, baths:1, price:1750, duration:'6-12', verified:true, furnished:false, pets:true, parking:true, gym:false, laundry:true, pool:true, forStudents:true, forInterns:false, badge:'', img:'https://images.unsplash.com/photo-1556912173-3bb406ef7e8a?w=600&q=80', dates:'Aug – Feb' },
+  { id:9, title:'Luxury Studio Downtown Austin', city:'Austin', state:'TX', neighborhood:'Downtown', type:'Studio', beds:0, baths:1, price:1900, duration:'1-3', verified:true, furnished:true, pets:false, parking:true, gym:true, laundry:true, pool:true, forStudents:false, forInterns:true, badge:'', img:'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=600&q=80', dates:'Jun – Aug' },
+  { id:10, title:'Budget Room Near UT Dallas', city:'Dallas', state:'TX', neighborhood:'Richardson', type:'Room', beds:1, baths:1, price:620, duration:'3-6', verified:true, furnished:true, pets:false, parking:true, gym:false, laundry:true, pool:false, forStudents:true, forInterns:false, badge:'', img:'https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=600&q=80', dates:'May – Aug' },
+  { id:11, title:'Hip Loft Near Columbia', city:'New York', state:'NY', neighborhood:'Morningside Heights', type:'1 Bed', beds:1, baths:1, price:2600, duration:'3-6', verified:true, furnished:true, pets:true, parking:false, gym:true, laundry:false, pool:false, forStudents:true, forInterns:true, badge:'new', img:'https://images.unsplash.com/photo-1554995207-c18c203602cb?w=600&q=80', dates:'Sep – Dec' },
+  { id:12, title:'Quiet Room Near Stanford', city:'San Francisco', state:'CA', neighborhood:'Palo Alto', type:'Room', beds:1, baths:1, price:1650, duration:'1-3', verified:true, furnished:true, pets:false, parking:true, gym:false, laundry:true, pool:false, forStudents:true, forInterns:true, badge:'', img:'https://images.unsplash.com/photo-1462826303086-329426d1aef5?w=600&q=80', dates:'Jun – Aug' },
+  { id:13, title:'Sleek 2BR Near Microsoft', city:'Seattle', state:'WA', neighborhood:'Redmond', type:'2 Bed', beds:2, baths:2, price:2200, duration:'6-12', verified:true, furnished:false, pets:true, parking:true, gym:true, laundry:true, pool:true, forStudents:false, forInterns:true, badge:'', img:'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=600&q=80', dates:'Jul – Jan' },
+  { id:14, title:'Affordable Studio Near DePaul', city:'Chicago', state:'IL', neighborhood:'Lincoln Park', type:'Studio', beds:0, baths:1, price:1050, duration:'3-6', verified:true, furnished:true, pets:false, parking:false, gym:false, laundry:true, pool:false, forStudents:true, forInterns:false, badge:'', img:'https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=600&q=80', dates:'May – Aug' },
+  { id:15, title:'Furnished 1BR Near UT Austin', city:'Austin', state:'TX', neighborhood:'Hyde Park', type:'1 Bed', beds:1, baths:1, price:1400, duration:'3-6', verified:true, furnished:true, pets:true, parking:true, gym:false, laundry:true, pool:false, forStudents:true, forInterns:true, badge:'new', img:'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80', dates:'Jun – Sep' },
+  { id:16, title:'Private Room Near Google NYC', city:'New York', state:'NY', neighborhood:'Chelsea', type:'Room', beds:1, baths:1, price:1800, duration:'1-3', verified:true, furnished:true, pets:false, parking:false, gym:true, laundry:false, pool:false, forStudents:false, forInterns:true, badge:'', img:'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80', dates:'Jun – Aug' },
+  { id:17, title:'Spacious House Near Texas A&M', city:'Houston', state:'TX', neighborhood:'College Station', type:'House', beds:3, baths:2, price:2400, duration:'6-12', verified:true, furnished:false, pets:true, parking:true, gym:false, laundry:true, pool:true, forStudents:true, forInterns:false, badge:'', img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80', dates:'Aug – May' },
+  { id:18, title:'Modern Studio in Deep Ellum', city:'Dallas', state:'TX', neighborhood:'Deep Ellum', type:'Studio', beds:0, baths:1, price:1100, duration:'1-3', verified:true, furnished:true, pets:false, parking:false, gym:true, laundry:true, pool:false, forStudents:true, forInterns:true, badge:'new', img:'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&q=80', dates:'May – Jul' },
+];
+
+let currentView = 'grid';
+let savedListings = new Set();
+const PAGE_SIZE = 9;
+let currentPage = 1;
+let filteredListings = [...LISTINGS];
+
+function bedsLabel(l) {
+  if (l.type === 'Studio') return 'Studio';
+  if (l.type === 'Room') return 'Private Room';
+  if (l.type === 'House') return `${l.beds} Bed House`;
+  return `${l.beds} Bed`;
+}
+
+function renderCards(list) {
+  const grid = document.getElementById('listingGrid');
+  const noRes = document.getElementById('noResults');
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = list.slice(start, start + PAGE_SIZE);
+  document.getElementById('results-num').textContent = list.length;
+  if (list.length === 0) { grid.innerHTML = ''; noRes.style.display = 'block'; renderPagination(0); return; }
+  noRes.style.display = 'none';
+  grid.innerHTML = page.map(l => `
+    <div class="listing-card" onclick="goToListing(${l.id})">
+      <div class="card-img">
+        <img src="${l.img}" alt="${l.title}" loading="lazy" />
+        <div class="card-badge ${l.badge}">${l.badge === 'new' ? 'New' : l.type}</div>
+        ${l.verified ? '<div class="card-verified">✓ Verified</div>' : ''}
+        <button class="card-save" onclick="toggleSave(event,${l.id})" id="save-${l.id}">${savedListings.has(l.id) ? '♥' : '♡'}</button>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${l.title}</div>
+        <div class="card-location">📍 ${l.neighborhood}, ${l.city}</div>
+        <div class="card-meta">
+          <span class="card-meta-item">🛏 ${bedsLabel(l)}</span>
+          <span class="card-meta-item">🚿 ${l.baths} Bath</span>
+          ${l.furnished ? '<span class="card-meta-item">🛋 Furnished</span>' : ''}
+          ${l.pets ? '<span class="card-meta-item">🐾 Pets OK</span>' : ''}
+        </div>
+        <div class="card-footer">
+          <div>
+            <div class="card-price">$${l.price.toLocaleString()} <span>/mo</span></div>
+            <div class="card-dates">📅 ${l.dates}</div>
+          </div>
+          ${l.forStudents && l.forInterns ? '<span style="font-size:0.7rem;color:var(--blue-600);font-weight:600;">🎓💼 All</span>'
+            : l.forStudents ? '<span style="font-size:0.7rem;color:var(--blue-600);font-weight:600;">🎓 Students</span>'
+            : '<span style="font-size:0.7rem;color:var(--blue-600);font-weight:600;">💼 Interns</span>'}
+        </div>
+      </div>
+    </div>
+  `).join('');
+  renderPagination(list.length);
+}
+
+function renderPagination(total) {
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const pg = document.getElementById('pagination');
+  if (pages <= 1) { pg.innerHTML = ''; return; }
+  let html = `<button class="page-btn arrow" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  for (let i = 1; i <= pages; i++) html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  html += `<button class="page-btn arrow" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button>`;
+  pg.innerHTML = html;
+}
+
+function goPage(n) {
+  const pages = Math.ceil(filteredListings.length / PAGE_SIZE);
+  if (n < 1 || n > pages) return;
+  currentPage = n;
+  renderCards(filteredListings);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const budget = parseInt(document.getElementById('budgetRange').value);
+  const city = document.getElementById('cityFilter').value;
+  const duration = document.getElementById('durationFilter').value;
+  const who = document.getElementById('whoFilter').value;
+  const verifiedOnly = document.getElementById('verifiedOnly').checked;
+  const furnishedOnly = document.getElementById('furnishedOnly').checked;
+  const petsOnly = document.getElementById('petsOnly').checked;
+  const selectedTypes = [...document.querySelectorAll('#typeFilters .pill.selected')].map(p => p.dataset.value);
+  const selectedAmenities = [...document.querySelectorAll('#amenityFilters .pill.selected')].map(p => p.dataset.value);
+
+  filteredListings = LISTINGS.filter(l => {
+    if (search && !l.title.toLowerCase().includes(search) && !l.city.toLowerCase().includes(search) && !l.neighborhood.toLowerCase().includes(search)) return false;
+    if (l.price > budget) return false;
+    if (city && l.city !== city) return false;
+    if (duration && l.duration !== duration) return false;
+    if (who === 'student' && !l.forStudents) return false;
+    if (who === 'intern' && !l.forInterns) return false;
+    if (verifiedOnly && !l.verified) return false;
+    if (furnishedOnly && !l.furnished) return false;
+    if (petsOnly && !l.pets) return false;
+    if (selectedTypes.length && !selectedTypes.includes(l.type)) return false;
+    if (selectedAmenities.includes('parking') && !l.parking) return false;
+    if (selectedAmenities.includes('gym') && !l.gym) return false;
+    if (selectedAmenities.includes('pets') && !l.pets) return false;
+    if (selectedAmenities.includes('furnished') && !l.furnished) return false;
+    if (selectedAmenities.includes('laundry') && !l.laundry) return false;
+    if (selectedAmenities.includes('pool') && !l.pool) return false;
+    return true;
+  });
+  currentPage = 1;
+  renderCards(filteredListings);
+  renderActiveFilters({ search, budget, city, duration, who, verifiedOnly, furnishedOnly, petsOnly, selectedTypes, selectedAmenities });
+}
+
+function renderActiveFilters({ search, budget, city, duration, who, verifiedOnly, furnishedOnly, petsOnly, selectedTypes, selectedAmenities }) {
+  const wrap = document.getElementById('activeFilterTags');
+  let tags = [];
+  if (search) tags.push({ label: `"${search}"`, clear: () => { document.getElementById('searchInput').value = ''; applyFilters(); } });
+  if (budget < 5000) tags.push({ label: `Up to $${budget.toLocaleString()}`, clear: () => { document.getElementById('budgetRange').value = 5000; updateBudget(5000); applyFilters(); } });
+  if (city) tags.push({ label: city, clear: () => { document.getElementById('cityFilter').value = ''; applyFilters(); } });
+  if (duration) tags.push({ label: duration + ' mo', clear: () => { document.getElementById('durationFilter').value = ''; applyFilters(); } });
+  if (who) tags.push({ label: who === 'student' ? 'Students' : 'Interns', clear: () => { document.getElementById('whoFilter').value = ''; applyFilters(); } });
+  if (verifiedOnly) tags.push({ label: 'Verified Only', clear: () => { document.getElementById('verifiedOnly').checked = false; applyFilters(); } });
+  if (furnishedOnly) tags.push({ label: 'Furnished', clear: () => { document.getElementById('furnishedOnly').checked = false; applyFilters(); } });
+  if (petsOnly) tags.push({ label: 'Pets OK', clear: () => { document.getElementById('petsOnly').checked = false; applyFilters(); } });
+  selectedTypes.forEach(t => tags.push({ label: t, clear: () => { document.querySelectorAll('#typeFilters .pill').forEach(p => { if (p.dataset.value === t) p.classList.remove('selected'); }); applyFilters(); } }));
+  selectedAmenities.forEach(a => tags.push({ label: a, clear: () => { document.querySelectorAll('#amenityFilters .pill').forEach(p => { if (p.dataset.value === a) p.classList.remove('selected'); }); applyFilters(); } }));
+
+  wrap.innerHTML = tags.map((t, i) => `<div class="active-filter-tag" onclick="clearTagAt(${i})">✕ ${t.label}</div>`).join('');
+  wrap._clears = tags.map(t => t.clear);
+}
+
+function clearTagAt(i) {
+  document.getElementById('activeFilterTags')._clears[i]();
+}
+
+function sortListings(val) {
+  if (val === 'price-asc') filteredListings.sort((a,b) => a.price - b.price);
+  if (val === 'price-desc') filteredListings.sort((a,b) => b.price - a.price);
+  if (val === 'newest') filteredListings.sort((a,b) => (b.badge === 'new' ? 1 : 0) - (a.badge === 'new' ? 1 : 0));
+  if (val === 'duration') filteredListings.sort((a,b) => a.duration.localeCompare(b.duration));
+  currentPage = 1;
+  renderCards(filteredListings);
+}
+
+function togglePill(el) {
+  el.classList.toggle('selected');
+  applyFilters();
+}
+
+function setView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const grid = document.getElementById('listingGrid');
+  if (view === 'list') grid.classList.add('list-view');
+  else grid.classList.remove('list-view');
+}
+
+function updateBudget(val) {
+  document.getElementById('budget-display').textContent = val >= 5000 ? 'Any price' : `Up to $${parseInt(val).toLocaleString()}`;
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('budgetRange').value = 5000;
+  updateBudget(5000);
+  document.getElementById('cityFilter').value = '';
+  document.getElementById('durationFilter').value = '';
+  document.getElementById('whoFilter').value = '';
+  document.getElementById('verifiedOnly').checked = false;
+  document.getElementById('furnishedOnly').checked = false;
+  document.getElementById('petsOnly').checked = false;
+  document.querySelectorAll('.pill.selected').forEach(p => p.classList.remove('selected'));
+  filteredListings = [...LISTINGS];
+  currentPage = 1;
+  renderCards(filteredListings);
+  document.getElementById('activeFilterTags').innerHTML = '';
+}
+
+function toggleSave(e, id) {
+  e.stopPropagation();
+  if (savedListings.has(id)) savedListings.delete(id);
+  else savedListings.add(id);
+  const btn = document.getElementById('save-' + id);
+  if (btn) { btn.textContent = savedListings.has(id) ? '♥' : '♡'; btn.style.color = savedListings.has(id) ? '#e05' : ''; }
+}
+
+function goToListing(id) {
+  window.location.href = `listing-detail.html?id=${id}`;
+}
+
+// Init
+renderCards(filteredListings);
+</script>
+</body>
+</html>
